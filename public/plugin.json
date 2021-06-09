@@ -1,0 +1,27 @@
+{
+  "pluginName": "数字生成",
+  "description": "自动生成手机号、身份证号等",
+  "main": "index.html",
+  "author": "lxh",
+  "homepage": "https://u.tools",
+  "version": "0.0.1",
+  "logo": "logo.png",
+  "preload": "preload.js",
+  "features": [
+    {
+      "code": "card",
+      "explain": "身份证生成",
+      "cmds":["card", "身份证"]
+    },
+    {
+      "code": "mobile",
+      "explain": "手机号生成",
+      "cmds":["mobile", "手机"]
+    },
+    {
+      "code": "bank",
+      "explain": "银行卡号生成",
+      "cmds":["bank", "银行卡"]
+    }
+  ]
+}
