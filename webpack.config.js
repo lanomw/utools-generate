@@ -34,10 +34,13 @@ module.exports = {
         use: {
           loader: 'babel-loader',
           options: {
-            presets: [['@babel/preset-env', { targets: { chrome: 80 } }], '@babel/preset-react'],
+            presets: [
+              '@babel/preset-env',
+              '@babel/preset-react'
+            ],
             plugins: [
               '@babel/plugin-transform-runtime',
-              ['@babel/plugin-proposal-decorators', { 'legacy': true }],
+              '@babel/plugin-proposal-decorators',
               '@babel/plugin-proposal-class-properties',
             ]
           }
