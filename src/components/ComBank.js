@@ -90,14 +90,14 @@ class ComBank extends Component {
                     <div className="out-item header">
                         <span className="no">序号</span>
                         <span>银行卡号码</span>
-                        <button className="ml-auto" onClick={() => this.onCopy()}>复制全部</button>
+                        <button className="ml-auto" onClick={() => this.onCopy()}>复制</button>
                     </div>
                     {
                         this.state.list.map((item, index) => (
                             <div className="out-item" key={index} onClick={() => this.onCopy(item)}>
                                 <span className="no">{index + 1}</span>
                                 <span>{item}</span>
-                                <button className="ml-auto">点击复制</button>
+                                <button className="ml-auto">复制</button>
                             </div>
                         ))
                     }

@@ -1,45 +1,12 @@
 import React, {Component} from 'react'
 
 const {random} = require('../utils/util')
+const cityCode = require('../constants/cityCode')
 
-const city = {
-    11: "北京",
-    12: "天津",
-    13: "河北",
-    14: "山西",
-    15: "内蒙古",
-    21: "辽宁",
-    22: "吉林",
-    23: "黑龙江",
-    31: "上海",
-    32: "江苏",
-    33: "浙江",
-    34: "安徽",
-    35: "福建",
-    36: "江西",
-    37: "山东",
-    41: "河南",
-    42: "湖北",
-    43: "湖南",
-    44: "广东",
-    45: "广西",
-    46: "海南",
-    50: "重庆",
-    51: "四川",
-    52: "贵州",
-    53: "云南",
-    54: "西藏",
-    61: "陕西",
-    62: "甘肃",
-    63: "青海",
-    64: "宁夏",
-    65: "新疆",
-    71: "台湾",
-    81: "香港",
-    82: "澳门",
-    91: "国外"
-};
-const cityCode = [11, 12, 13, 14, 15, 21, 22, 23, 31, 32, 33, 34, 35, 36, 37, 41, 42, 43, 44, 45, 46, 50, 51, 52, 53, 54, 61, 62, 63, 64, 65, 71, 81, 82, 91]
+// 加权因子
+const arrExp = [7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2];
+// 校验码
+const arrValid = [1, 0, "X", 9, 8, 7, 6, 5, 4, 3, 2];
 
 function fillZero(str, len = 0) {
     return `${'0'.repeat(len)}${str}`.slice(-len)
@@ -69,17 +36,16 @@ class ComCard extends Component {
     onInput = (e) => {
         const value = e.target.value
         const type = e.target.dataset.type
-        const {num, startDate, endDate} = this.state
 
         switch (type) {
-            case 'startDate':
-                value && this.setState({startDate: value})
+            case 'startDateLimit':
+                value && this.setState({startDateLimit: value})
                 break
-            case 'endDate':
-                value && this.setState({endDate: value});
+            case 'endDateLimit':
+                value && this.setState({endDateLimit: value});
                 break
             case 'num':
-                this.setState({num: /^[1-9][0-9]*?$/.test(value) ? value : num});
+                this.setState({num: /^[1-9][0-9]*?$/.test(value) ? value : 5});
                 break
         }
     }
@@ -90,7 +56,9 @@ class ComCard extends Component {
     }
 
     onSubmit = () => {
-        const {startDateLimit = '1970-01-01', endDateLimit = new Date(), num = 1} = this.state
+        const startDateLimit = this.state.startDateLimit || '1970-01-01'
+        const endDateLimit = this.state.endDateLimit || new Date()
+        const num = this.state.num || 1
 
         const startDate = new Date(startDateLimit)
         const endDate = new Date(endDateLimit)
@@ -113,7 +81,9 @@ class ComCard extends Component {
             // 年
             year = random(startYear, endYear)
             // 月
-            if (startYear === year) {
+            if (startYear === year && endYear === year) {
+                month = random(startMonth, endMonth)
+            } else if (startYear === year) {
                 month = random(startMonth, 12)
             } else if (endYear === year) {
                 month = random(1, endMonth)
@@ -122,7 +92,9 @@ class ComCard extends Component {
                 day = random(1, getDayByYearMonth(year, month))
             }
             // 日。边界情况需要单独处理
-            if (startYear === year && startMonth === month) {
+            if ((startYear === year && endYear === year && startMonth === endMonth)) {
+                day = random(startDay, endDay)
+            } else if (startYear === year && startMonth === month) {
                 day = random(startDay, getDayByYearMonth(year, month))
             } else if (endYear === year && endMonth === month) {
                 day = random(1, endDay)
@@ -131,10 +103,8 @@ class ComCard extends Component {
             }
 
             // 地区号码。首位不为0
-            const randomCityCodeIndex = random(1, cityCode.length)
-            idCard += fillZero(cityCode[randomCityCodeIndex - 1], 2)
-            idCard += fillZero(random(99), 2)
-            idCard += fillZero(random(99), 2)
+            const city = cityCode[random(0, cityCode.length - 1)]
+            idCard += city.code
 
             // 出生日期
             idCard += fillZero(year) + fillZero(month, 2) + fillZero(day, 2)
@@ -142,19 +112,22 @@ class ComCard extends Component {
             // 顺序码
             idCard += fillZero(random(1, 999), 3)
 
-            // 校验码
-            idCard += this.validNum(idCard)
+            // 校验码。加权求和除以11
+            idCard += this.validCode(idCard)
 
-            list.push(idCard)
+            list.push({
+                idCard,
+                area: city.area,
+                sex: idCard[17] % 2 !== 0 ? 1 : 2,
+                birthday: `${idCard.substring(6,10)}-${idCard.substring(10,12)}-${idCard.substring(12,14)}`
+            })
         }
 
         this.setState({list})
     }
 
     // 根据前17位生成末位
-    validNum = (idCard) => {
-        const arrExp = [7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2]; // 加权因子
-        const arrValid = [1, 0, "X", 9, 8, 7, 6, 5, 4, 3, 2]; // 校验码
+    validCode = (idCard) => {
         let sum = 0;
         for (let j = 0; j < 17; j++) {
             // 对前17位数字与权值乘积求和
@@ -188,15 +161,21 @@ class ComCard extends Component {
                 <div className="out">
                     <div className="out-item header">
                         <span className="no">序号</span>
-                        <span>身份证号码</span>
-                        <button className="ml-auto" onClick={() => this.onCopy()}>复制全部</button>
+                        <span className="idCard">身份证号码</span>
+                        <span className="area">归属地</span>
+                        <span className="birthday">出生日期</span>
+                        <span className="sex">性别</span>
+                        <button className="ml-auto" onClick={() => this.onCopy()}>复制</button>
                     </div>
                     {
                         this.state.list.map((item, index) => (
-                            <div className="out-item" key={index} onClick={() => this.onCopy(item)}>
+                            <div className="out-item" key={index} onClick={() => this.onCopy(item.idCard)}>
                                 <span className="no">{index + 1}</span>
-                                <span>{item}</span>
-                                <button className="ml-auto">点击复制</button>
+                                <span className="idCard">{item.idCard}</span>
+                                <span className="area">{item.area}</span>
+                                <span className="birthday">{item.birthday}</span>
+                                <span className="sex">{item.sex === 1 ? '男' : '女'}</span>
+                                <button className="ml-auto">复制</button>
                             </div>
                         ))
                     }

@@ -64,11 +64,27 @@ input {
 }
 
 .out .out-item .no {
-    @apply text-gray-700 font-bold block mr-6 w-1/12
+    @apply text-gray-700 font-bold w-1/12
+}
+
+.out .out-item .idCard {
+    @apply w-3/12
+}
+
+.out .out-item .area {
+    @apply w-4/12
+}
+
+.out .out-item .birthday {
+    @apply w-2/12
+}
+
+.out .out-item .sex {
+    @apply w-1/12
 }
 
 .out .out-item button {
-    @apply px-3 text-center h-full text-gray-700 hover:text-blue-300
+    @apply px-3 text-center h-full text-gray-700 hover:text-blue-300 w-1/12
 }
 
 
